@@ -13,8 +13,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # AI Proxy configuration
-RAW_TOKEN = os.getenv("AIPROXY_TOKEN")  # should be just the raw token in .env
-AIPROXY_TOKEN = f"Bearer {RAW_TOKEN}"
+RAW_TOKEN = os.getenv("AIPROXY_TOKEN", "").strip()
+if RAW_TOKEN.lower().startswith("bearer "):
+    RAW_TOKEN = RAW_TOKEN[7:].strip()
+AIPROXY_TOKEN = f"Bearer {RAW_TOKEN}" if RAW_TOKEN else ""
 
 AIPROXY_URL = "https://aiproxy.sanand.workers.dev/openai"
 DB_PATH = "knowledge_base.db"
@@ -35,6 +37,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+async def root():
+    return {"status": "ok", "service": "Discourse Teaching Assistant", "api": "/api/"}
 
 # Request/Response schemas
 class QueryRequest(BaseModel):
