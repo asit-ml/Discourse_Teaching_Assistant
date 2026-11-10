@@ -2,6 +2,10 @@
 
 An AI-powered virtual teaching assistant for the IIT Madras Tools in Data Science course. The API retrieves relevant course and Discourse content from a local SQLite knowledge base, then uses an OpenAI-compatible AI proxy to generate a concise answer with supporting links.
 
+**Live application:** https://discourse-teaching-assistant.vercel.app/
+
+**API endpoint:** https://discourse-teaching-assistant.vercel.app/api/
+
 ## What It Does
 
 - Accepts student questions through a FastAPI endpoint
