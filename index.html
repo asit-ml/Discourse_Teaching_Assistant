@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A course-aware teaching assistant for Tools in Data Science." />
+    <title>Discourse Teaching Assistant</title>
+    <style>
+      :root { color-scheme: dark; --bg: #07111f; --panel: #0d1b2e; --line: #1d3552; --text: #e7eef8; --muted: #9db0c7; --accent: #55d6be; --accent-2: #86a8ff; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 15% 0%, #16345a 0, transparent 35%), var(--bg); color: var(--text); font: 16px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+      main { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 72px 0 48px; }
+      .eyebrow { color: var(--accent); font: 700 12px/1.2 ui-monospace, SFMono-Regular, monospace; letter-spacing: .18em; text-transform: uppercase; }
+      h1 { max-width: 620px; margin: 14px 0 12px; font-size: clamp(2.3rem, 7vw, 4.8rem); line-height: .98; letter-spacing: -.06em; }
+      .intro { max-width: 600px; margin: 0; color: var(--muted); font-size: 1.05rem; }
+      .panel { margin-top: 34px; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: rgba(13, 27, 46, .88); box-shadow: 0 20px 60px rgba(0, 0, 0, .22); }
+      label { display: block; margin-bottom: 9px; color: var(--muted); font: 700 12px/1.2 ui-monospace, SFMono-Regular, monospace; letter-spacing: .12em; text-transform: uppercase; }
+      textarea { display: block; width: 100%; min-height: 128px; resize: vertical; padding: 14px; border: 1px solid var(--line); border-radius: 12px; outline: none; background: #091628; color: var(--text); font: inherit; }
+      textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(85, 214, 190, .12); }
+      .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px; }
+      button { border: 0; border-radius: 999px; padding: 12px 20px; background: var(--accent); color: #06201d; cursor: pointer; font-weight: 800; }
+      button:disabled { cursor: wait; opacity: .55; }
+      .sample { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+      #status { color: var(--muted); font-size: .9rem; }
+      #answer { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); white-space: pre-wrap; }
+      #answer.visible { display: block; }
+      .links { display: grid; gap: 8px; margin-top: 16px; }
+      .links a { color: var(--accent-2); overflow-wrap: anywhere; }
+      .error { color: #ff9d9d; }
+      footer { margin-top: 24px; color: #71859d; font-size: .85rem; }
+      @media (max-width: 520px) { main { padding-top: 42px; } .panel { padding: 16px; } .actions button { width: 100%; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">Tools in Data Science · IIT Madras</div>
+      <h1>Ask the course assistant.</h1>
+      <p class="intro">Ask a question about the course, assignments, tools, or related discussions. Answers are retrieved from the indexed course material and include references when available.</p>
+      <section class="panel" aria-labelledby="question-label">
+        <form id="question-form">
+          <label id="question-label" for="question">Your question</label>
+          <textarea id="question" name="question" placeholder="For example: What is the submission deadline?" required></textarea>
+          <div class="actions">
+            <button id="ask-button" type="submit">Ask assistant</button>
+            <button class="sample" id="sample-button" type="button">Use sample question</button>
+            <span id="status" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+        <div id="answer" aria-live="polite"></div>
+        <div class="links" id="links"></div>
+      </section>
+      <footer>Powered by semantic retrieval and an OpenAI-compatible AI service.</footer>
+    </main>
+    <script>
+      const form = document.querySelector("#question-form");
+      const question = document.querySelector("#question");
+      const askButton = document.querySelector("#ask-button");
+      const sampleButton = document.querySelector("#sample-button");
+      const status = document.querySelector("#status");
+      const answer = document.querySelector("#answer");
+      const links = document.querySelector("#links");
+
+      sampleButton.addEventListener("click", () => {
+        question.value = "What is the submission deadline?";
+        question.focus();
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const text = question.value.trim();
+        if (!text) return;
+
+        askButton.disabled = true;
+        status.textContent = "Searching course material…";
+        status.className = "";
+        answer.className = "";
+        answer.textContent = "";
+        links.replaceChildren();
+
+        try {
+          const response = await fetch("/api/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: text, image: null })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.detail || "The assistant could not answer right now.");
+          answer.textContent = data.answer || "No answer was returned.";
+          answer.className = "visible";
+          (data.links || []).forEach((item) => {
+            const link = document.createElement("a");
+            link.href = item.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = item.text || item.url;
+            links.appendChild(link);
+          });
+          status.textContent = "Answer ready";
+        } catch (error) {
+          status.textContent = error.message;
+          status.className = "error";
+        } finally {
+          askButton.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

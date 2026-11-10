@@ -4,6 +4,7 @@ import logging
 import sqlite3
 import numpy as np
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
@@ -20,6 +21,7 @@ AIPROXY_TOKEN = f"Bearer {RAW_TOKEN}" if RAW_TOKEN else ""
 
 AIPROXY_URL = "https://aipipe.org/openai"
 DB_PATH = "knowledge_base.db"
+UI_PATH = os.path.join(os.path.dirname(__file__), "index.html")
 EMBEDDING_MODEL = "text-embedding-3-small"
 CHAT_MODEL = "gpt-4o-mini"
 EMBEDDING_URL = f"{AIPROXY_URL}/v1/embeddings"
@@ -40,7 +42,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "service": "Discourse Teaching Assistant", "api": "/api/"}
+    return FileResponse(UI_PATH, media_type="text/html")
 
 @app.get("/health")
 async def health():
