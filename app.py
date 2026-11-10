@@ -42,6 +42,14 @@ app.add_middleware(
 async def root():
     return {"status": "ok", "service": "Discourse Teaching Assistant", "api": "/api/"}
 
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "token_configured": bool(RAW_TOKEN),
+        "knowledge_base_available": os.path.exists(DB_PATH),
+    }
+
 # Request/Response schemas
 class QueryRequest(BaseModel):
     question: str
