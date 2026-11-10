@@ -18,7 +18,7 @@ if RAW_TOKEN.lower().startswith("bearer "):
     RAW_TOKEN = RAW_TOKEN[7:].strip()
 AIPROXY_TOKEN = f"Bearer {RAW_TOKEN}" if RAW_TOKEN else ""
 
-AIPROXY_URL = "https://aiproxy.sanand.workers.dev/openai"
+AIPROXY_URL = "https://aipipe.org/openai"
 DB_PATH = "knowledge_base.db"
 EMBEDDING_MODEL = "text-embedding-3-small"
 CHAT_MODEL = "gpt-4o-mini"
