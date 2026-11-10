@@ -227,6 +227,10 @@ async def query_knowledge_base(request: QueryRequest) -> QueryResponse:
         print("\n✅ Final API response:\n", json.dumps(response, indent=2))
         return QueryResponse(answer=response["answer"], links=response["links"])
 
-    except Exception:
+    except Exception as error:
         logging.error("Error in /api/", exc_info=True)
-        return QueryResponse(answer="⚠️ Failed to get an answer.", links=[])
+        if "JWSInvalid" in str(error) or "401" in str(error) or "Unauthorized" in str(error):
+            message = "⚠️ AI proxy authentication failed. Replace AIPROXY_TOKEN with a valid raw token and redeploy."
+        else:
+            message = "⚠️ Failed to get an answer. Check the Vercel function logs for details."
+        return QueryResponse(answer=message, links=[])
